@@ -1,8 +1,6 @@
 package chess;
 
 import javax.swing.*;
-
-import com.github.bhlangonijr.chesslib.Piece;
 import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
 
@@ -52,7 +50,7 @@ public class DisplayThread implements Runnable {
             sq1 = lastClicked;
         } else if(sq1 != lastClicked) {
             sq2 = lastClicked;
-            lastPlayerMove = new Move(sq1, sq2, Piece.WHITE_QUEEN);
+            lastPlayerMove = new Move(sq1, sq2);
             sq1 = null;
             sq2 = null;
         }

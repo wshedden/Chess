@@ -2,11 +2,7 @@ package chess;
 
 import javax.swing.*;
 import javax.swing.border.*;
-
-// import com.github.bhlangonijr.chesslib.Piece;
 import com.github.bhlangonijr.chesslib.Square;
-// import com.github.bhlangonijr.chesslib.move.Move;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -16,7 +12,6 @@ public class BoardGUI implements ActionListener {
     private JButton[][] chessBoardSquares = new JButton[8][8];
     private JPanel chessBoard;
     private String[][] pieces;
-
     private Square lastClicked;
 
     BoardGUI() {
@@ -115,30 +110,18 @@ public class BoardGUI implements ActionListener {
             return new ImageIcon(new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB));
         } else {
             if (c == c.toLowerCase()) {
-                return new ImageIcon("chess/src/main/resources/black_pieces/" + pieces[i][j] + ".png");
+                return new ImageIcon("chess/src/main/resources/black_pieces/" + c.toLowerCase() + ".png");
             } else {
-                return new ImageIcon("chess/src/main/resources/white_pieces/" + pieces[i][j] + ".png");
+                return new ImageIcon("chess/src/main/resources/white_pieces/" + c.toLowerCase() + ".png");
             }
         }
     }
 
     public void actionPerformed(ActionEvent e) {
-        //User input
-
         String[] s = e.getActionCommand().split(" ");
         int y = Integer.parseInt(s[0]);
         int x = Integer.parseInt(s[1]);
         lastClicked = Square.squareAt(56+x-8*y);
-        // if(App.sq1 == null && App.board.getPiece(sq) != Piece.NONE){
-        //     App.sq1 = sq;
-        // } else {
-        //     Move move = new Move(App.sq1, sq);
-        //     if(App.board.legalMoves().contains(move)){
-        //         App.board.doMove(move);
-        //     }
-        //     App.sq1 = null;
-        //     App.fen = App.board.getFen();
-        // }
     }
 
     public Square getLastClicked(){
