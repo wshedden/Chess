@@ -2,17 +2,26 @@ package chess;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import com.github.bhlangonijr.chesslib.Square;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 
-public class BoardGUI implements ActionListener {
+public class BoardGUI {
     private final JPanel gui = new JPanel(new BorderLayout(3, 3));
     private JButton[][] chessBoardSquares = new JButton[8][8];
     private JPanel chessBoard;
     private String[][] pieces;
-    private Square lastClicked;
+
+    private final Color darkTile = new Color(140, 162, 173);
+    private final Color lightTile = new Color(230, 227, 222);
+
+    private int xCheck;
+    private int yCheck;
+
+    private ImageIcon[][] icons = new ImageIcon[2][];
+    private Map<String, Integer> iconMap;
 
     BoardGUI() {
         pieces = new String[8][8];
@@ -22,20 +31,15 @@ public class BoardGUI implements ActionListener {
                 pieces[i][j] = "";
             }
         }
+        loadIcons();
         initialiseGui();
     }
 
     public final void initialiseGui() {
-        final Color darkTile = new Color(140, 162, 173);
-        final Color lightTile = new Color(230, 227, 222);
+        JPanel panel = new JPanel(new FlowLayout());
+        gui.add(panel);
 
-        // set up the main GUI
         gui.setBorder(new EmptyBorder(5, 5, 5, 5));
-        JToolBar tools = new JToolBar();
-        tools.setFloatable(false);
-        gui.add(tools, BorderLayout.PAGE_START);
-        tools.addSeparator();
-
         chessBoard = new JPanel(new GridLayout(0, 8));
         chessBoard.setBorder(new LineBorder(darkTile));
         gui.add(chessBoard);
@@ -45,13 +49,12 @@ public class BoardGUI implements ActionListener {
                 JButton b = new JButton();
                 b.setMargin(buttonMargin);
                 b.setIcon(getIcon(i, j));
-                if ((j % 2 == 1 && i % 2 == 1) || (j % 2 == 0 && i % 2 == 0)) {
+                if ((j % 2 == 1 && i % 2 == 1) || (j % 2 == 0 && i % 2 == 0))
                     b.setBackground(lightTile);
-                } else {
+                else
                     b.setBackground(darkTile);
-                }
+
                 b.setActionCommand(Integer.toString(i) + " " + Integer.toString(j));
-                b.addActionListener(this);
                 chessBoardSquares[j][i] = b;
             }
         }
@@ -63,12 +66,29 @@ public class BoardGUI implements ActionListener {
         }
     }
 
+    public void addActionListener(int i, int j, ActionListener listener) {
+        chessBoardSquares[i][j].addActionListener(listener);
+    }
+
     public final void refreshBoard() {
         for (int i = 0; i < chessBoardSquares.length; i++) {
             for (int j = 0; j < chessBoardSquares[i].length; j++) {
+                if ((j % 2 == 1 && i % 2 == 1) || (j % 2 == 0 && i % 2 == 0)) {
+                    chessBoardSquares[j][i].setBackground(lightTile);
+                } else {
+                    chessBoardSquares[j][i].setBackground(darkTile);
+                }
                 chessBoardSquares[j][i].setIcon(getIcon(i, j));
             }
         }
+        if (xCheck != -1 && yCheck != -1) {
+            chessBoardSquares[xCheck][yCheck].setBackground(new Color(190, 40, 60));
+        }
+    }
+
+    public void setCheckSquare(int x, int y) {
+        xCheck = x;
+        yCheck = y;
     }
 
     public final JComponent getChessBoardGUI() {
@@ -104,27 +124,31 @@ public class BoardGUI implements ActionListener {
         }
     }
 
-    private ImageIcon getIcon(int i, int j) {
-        String c = pieces[i][j];
-        if (c == "") {
-            return new ImageIcon(new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB));
-        } else {
-            if (c == c.toLowerCase()) {
-                return new ImageIcon("chess/src/main/resources/black_pieces/" + c.toLowerCase() + ".png");
-            } else {
-                return new ImageIcon("chess/src/main/resources/white_pieces/" + c.toLowerCase() + ".png");
+    private void loadIcons() {
+        iconMap = new HashMap<String, Integer>();
+        iconMap.put("q", 0);
+        iconMap.put("k", 1);
+        iconMap.put("r", 2);
+        iconMap.put("b", 3);
+        iconMap.put("n", 4);
+        iconMap.put("p", 5);
+
+        icons[0] = new ImageIcon[6];
+        icons[1] = new ImageIcon[6];
+        for(int i = 0; i < 2; i++) {
+            for(int j = 0; j < 6; j++) {
+                icons[i][j] = new ImageIcon("chess/src/main/resources/" + Integer.toString(i) + "/" + Integer.toString(j) + ".png");
             }
         }
     }
 
-    public void actionPerformed(ActionEvent e) {
-        String[] s = e.getActionCommand().split(" ");
-        int y = Integer.parseInt(s[0]);
-        int x = Integer.parseInt(s[1]);
-        lastClicked = Square.squareAt(56+x-8*y);
-    }
+    private ImageIcon getIcon(int i, int j) {
+        String c = pieces[i][j];
+        if (c == "") 
+            return new ImageIcon(new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB));
+        String lower = c.toLowerCase();
+        int colour = c == lower ? 0 : 1;
+        return icons[colour][iconMap.get(lower)];
 
-    public Square getLastClicked(){
-        return lastClicked;
     }
 }
