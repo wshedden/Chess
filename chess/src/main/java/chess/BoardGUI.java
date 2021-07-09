@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BoardGUI {
-    private final JPanel gui = new JPanel(new BorderLayout(3, 3));
+    private final JPanel mainPanel = new JPanel(new BorderLayout(1, 1));
     private JButton[][] chessBoardSquares = new JButton[8][8];
     private JPanel chessBoard;
     private String[][] pieces;
@@ -36,13 +36,12 @@ public class BoardGUI {
     }
 
     public final void initialiseGui() {
-        JPanel panel = new JPanel(new FlowLayout());
-        gui.add(panel);
-
-        gui.setBorder(new EmptyBorder(5, 5, 5, 5));
+        mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         chessBoard = new JPanel(new GridLayout(0, 8));
         chessBoard.setBorder(new LineBorder(darkTile));
-        gui.add(chessBoard);
+        chessBoard.setMinimumSize(chessBoard.getSize());
+        chessBoard.setMinimumSize(chessBoard.getSize());
+        mainPanel.add(chessBoard);
         Insets buttonMargin = new Insets(0, 0, 0, 0);
         for (int i = 0; i < chessBoardSquares.length; i++) {
             for (int j = 0; j < chessBoardSquares[i].length; j++) {
@@ -96,7 +95,7 @@ public class BoardGUI {
     }
 
     public final JComponent getGui() {
-        return gui;
+        return mainPanel;
     }
 
     public void setFen(String fen) {

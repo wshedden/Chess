@@ -8,12 +8,9 @@ public class App {
 
     public static void main(String[] args) {
         GameBoard gb = new GameBoard(true);
-        gb.setFen("1Q6/6K1/8/8/8/8/1k3p2/8 b - - 0 1");
+        //gb.setFen("1Q6/6K1/8/8/8/2k5/5p2/8 b - - 0 1");
+        gb.setFen("8/1P6/3k2q1/8/8/4K3/8/8 w - - 0 1");
         gb.updateBoard();
-        while (true) {
-            // gb.updateBoard();
-            // waitMillis(40);
-        }
     }
 
     public static void waitMillis(int millis) {
