@@ -9,13 +9,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BoardGUI {
-    private final JPanel mainPanel = new JPanel(new BorderLayout(1, 1));
+    private final JPanel mainPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     private JButton[][] chessBoardSquares = new JButton[8][8];
+    private JButton[] promotionSquares = new JButton[4];
     private JPanel chessBoard;
+    private JPanel promotionGrid;
+    private JPanel turnIndicator;
     private String[][] pieces;
 
-    private final Color darkTile = new Color(140, 162, 173);
-    private final Color lightTile = new Color(230, 227, 222);
+    public static Color darkTile = new Color(140, 162, 173);
+    public static Color lightTile = new Color(230, 227, 222);
 
     private int xCheck;
     private int yCheck;
@@ -24,7 +27,7 @@ public class BoardGUI {
     private Map<String, Integer> iconMap;
 
     BoardGUI() {
-        pieces = new String[8][8];
+        pieces = new String[8][];
         for (int i = 0; i < 8; i++) {
             pieces[i] = new String[8];
             for (int j = 0; j < 8; j++) {
@@ -32,17 +35,24 @@ public class BoardGUI {
             }
         }
         loadIcons();
-        initialiseGui();
+        mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        initialiseChessboard();
+        initialisePromotionGrid();
+        initialiseTurnIndicator();
     }
 
-    public final void initialiseGui() {
-        mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        chessBoard = new JPanel(new GridLayout(0, 8));
+    private void initialiseTurnIndicator() {
+        turnIndicator = new JPanel();
+        turnIndicator.setSize(80, 80);
+    }
+
+    private void initialiseChessboard() {
+        chessBoard = new JPanel(new GridLayout(8, 8));
         chessBoard.setBorder(new LineBorder(darkTile));
         chessBoard.setMinimumSize(chessBoard.getSize());
         chessBoard.setMinimumSize(chessBoard.getSize());
         mainPanel.add(chessBoard);
-        Insets buttonMargin = new Insets(0, 0, 0, 0);
+        Insets buttonMargin = new Insets(-3, -3, -3, -3);
         for (int i = 0; i < chessBoardSquares.length; i++) {
             for (int j = 0; j < chessBoardSquares[i].length; j++) {
                 JButton b = new JButton();
@@ -65,8 +75,42 @@ public class BoardGUI {
         }
     }
 
-    public void addActionListener(int i, int j, ActionListener listener) {
+    private void initialisePromotionGrid() {
+        promotionGrid = new JPanel(new GridLayout(2, 2));
+        mainPanel.add(promotionGrid);
+        Insets buttonMargin = new Insets(-2, -2, -2, -2);
+        for (int i = 0; i < 4; i++) {
+            JButton b = new JButton();
+            if(i == 0 || i == 3) b.setBackground(lightTile);
+            else b.setBackground(darkTile);
+            // b.setBackground(new Color(230, 227, 222));
+            b.setMargin(buttonMargin);
+            b.setActionCommand("p " + Integer.toString(i));
+            promotionGrid.add(b);
+            promotionSquares[i] = b;
+        }
+        promotionGrid.setBorder(new LineBorder(darkTile));
+        promotionGrid.setMinimumSize(new Dimension(400, 400));
+        updatePromotionGrid(true);
+        promotionGrid.setVisible(true);
+    }
+
+    public void updatePromotionGrid(boolean white) {
+        String[] pieceList = new String[] { "q", "r", "b", "n" };
+        for (int i = 0; i < 4; i++) {
+            String path = "src/main/resources/black_pieces_small/";
+            if (white)
+                path = "src/main/resources/white_pieces_small/";
+            promotionSquares[i].setIcon(new ImageIcon(path + pieceList[i] + ".png"));
+        }
+    }
+
+    public void addBoardActionListener(int i, int j, ActionListener listener) {
         chessBoardSquares[i][j].addActionListener(listener);
+    }
+
+    public void addPromotionActionListener(int i, ActionListener listener) {
+        promotionSquares[i].addActionListener(listener);
     }
 
     public final void refreshBoard() {
@@ -96,6 +140,10 @@ public class BoardGUI {
 
     public final JComponent getGui() {
         return mainPanel;
+    }
+
+    public final void setPromotionColour(Color colour) {
+        promotionGrid.setBorder(BorderFactory.createLineBorder(colour));
     }
 
     public void setFen(String fen) {
@@ -136,7 +184,8 @@ public class BoardGUI {
         icons[1] = new ImageIcon[6];
         for(int i = 0; i < 2; i++) {
             for(int j = 0; j < 6; j++) {
-                icons[i][j] = new ImageIcon("chess/src/main/resources/" + Integer.toString(i) + "/" + Integer.toString(j) + ".png");
+                icons[i][j] = new ImageIcon("src/main/resources/" + Integer.toString(i) + "/" + Integer.toString(j) + ".png");
+
             }
         }
     }
@@ -148,6 +197,5 @@ public class BoardGUI {
         String lower = c.toLowerCase();
         int colour = c == lower ? 0 : 1;
         return icons[colour][iconMap.get(lower)];
-
     }
 }

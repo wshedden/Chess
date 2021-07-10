@@ -1,62 +1,52 @@
 package chess;
 
 import javax.swing.*;
-import java.awt.*;
+
 import java.awt.event.*;
+import java.awt.*;
 import java.util.List;
 import com.github.bhlangonijr.chesslib.*;
 import com.github.bhlangonijr.chesslib.move.*;
 
 public class GameBoard implements ActionListener {
-    private String promotionPiece;
     private Board board;
     private BoardGUI gui;
-    private PromotionGUI promotionGUI;
 
     private Square sq1;
     private Square sq2;
     private Move lastPlayerMove;
     private JFrame frame;
-    private JFrame promotionFrame;
+    private boolean isWaitingForPromotion = false;
+    private Move partialPromotion;
 
-    public GameBoard(boolean isPlayerInput) {
+    public GameBoard(boolean playerInput) {
         board = new Board();
         gui = new BoardGUI();
         frameSetup();
-        if(isPlayerInput) {
+        if (playerInput)
             addActionListeners();
-            promotionGUI = new PromotionGUI();
-            promotionFrameSetup();
-        }
-
     }
 
     private void addActionListeners() {
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                gui.addActionListener(i, j, this);
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                gui.addBoardActionListener(i, j, this);
             }
+        }
+        for (int i = 0; i < 4; i++) {
+            gui.addPromotionActionListener(i, this);
         }
     }
 
-    private void frameSetup(){
+    private void frameSetup() {
         frame = new JFrame("Chess");
         frame.add(gui.getGui());
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLocationByPlatform(true);
         frame.pack();
-        frame.setMinimumSize(frame.getSize());
+        frame.setMinimumSize(new Dimension(840, 750));
+        frame.setMaximumSize(new Dimension(840, 750));
         frame.setVisible(true);
-    }
-
-    private void promotionFrameSetup(){
-        promotionFrame = new JFrame("Promotion");
-        promotionFrame.add(promotionGUI.grid);
-        promotionFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        promotionFrame.setLocationByPlatform(true);
-        promotionFrame.pack();
-        promotionFrame.setMinimumSize(new Dimension(155, 155));
-        promotionFrame.setVisible(true);
     }
 
     public void setFen(String fen) {
@@ -69,8 +59,15 @@ public class GameBoard implements ActionListener {
         if (move != null) {
             if (board.legalMoves().contains(move))
                 board.doMove(move);
-            else
-                board = attemptMove(board, testForPromotion(board, move));
+            else {
+                boolean isPromotion = testForPromotion(board, move);
+                if(!isPromotion) {
+                    board = attemptMove(board, move);
+                } else {
+                    isWaitingForPromotion = true;
+                }
+
+            }
         }
         testForChecks();
         gui.setFen(board.getFen());
@@ -91,47 +88,51 @@ public class GameBoard implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        frame.setVisible(true);
+        gui.getChessBoardGUI().setVisible(true);
+        frame.repaint();
+        gui.getChessBoardGUI().repaint();
         String[] s = e.getActionCommand().split(" ");
-        int y = Integer.parseInt(s[0]);
-        int x = Integer.parseInt(s[1]);
-        Square lastClicked = Square.squareAt(56 + x - 8 * y);
-        //Update squares
-        if(sq1 == null) {
-            sq1 = lastClicked;
+        if (!isWaitingForPromotion && s[0] != "p") {
+            int y = Integer.parseInt(s[0]);
+            int x = Integer.parseInt(s[1]);
+            Square lastClicked = Square.squareAt(56 + x - 8 * y);
+            // Update squares
+            if (sq1 == null) {
+                sq1 = lastClicked;
+            } else {
+                sq2 = lastClicked;
+                lastPlayerMove = new Move(sq1, sq2);
+                sq1 = null;
+                sq2 = null;
+            }
+            updateBoard();
+        } else if(isWaitingForPromotion && s[0].equals("p")) {
+            int promotionID = Integer.parseInt(s[1]);
+            Piece piece = getPromotionPiece(promotionID);
+            attemptMove(board, new Move(partialPromotion.getFrom(), partialPromotion.getTo(), piece));
+            isWaitingForPromotion = false;
+            partialPromotion = null;
+            gui.setPromotionColour(BoardGUI.darkTile);
+            testForChecks();
+            gui.setFen(board.getFen());
+            gui.refreshBoard();
+            frame.repaint();
         } else {
-            sq2 = lastClicked;
-            lastPlayerMove = new Move(sq1, sq2);
-            sq1 = null;
-            sq2 = null;
+            System.err.println("actionPerformed error");
         }
-        updateBoard();
     }
 
-    private Piece getPromotionPiece(Side side) {
-        showPromotionMenu(side == Side.BLACK);
-        do {
-            App.waitMillis(100);
-        } while (promotionPiece == null);
-        int promotionId = Integer.parseInt(promotionPiece);
-        promotionPiece = null;
-        promotionFrame.setVisible(false);
+    private Piece getPromotionPiece(int promotionID) {
+        Side side = board.getSideToMove();
         if (side == Side.WHITE)
             return new Piece[] { Piece.WHITE_QUEEN, Piece.WHITE_ROOK, Piece.WHITE_BISHOP,
-                    Piece.WHITE_KNIGHT }[promotionId];
+                    Piece.WHITE_KNIGHT }[promotionID];
 
-        return new Piece[] { Piece.BLACK_QUEEN, Piece.BLACK_ROOK, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT }[promotionId];
+        return new Piece[] { Piece.BLACK_QUEEN, Piece.BLACK_ROOK, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT }[promotionID];
     }
 
-    private void showPromotionMenu(boolean black) { //TODO: THIS PART IS FUcked lol
-        promotionGUI.refreshIcons(black);
-        Point p = MouseInfo.getPointerInfo().getLocation();
-        p.translate(-70, -80);
-        promotionFrame.setLocation(p);
-        promotionFrame.setVisible(true);
-    }
-
-    private Move testForPromotion(Board board, Move move) {
-        Move finalMove = null;
+    private boolean testForPromotion(Board board, Move move) {
         int count = 0;
         List<Move> moves = board.legalMoves();
         int size = moves.size();
@@ -144,9 +145,12 @@ public class GameBoard implements ActionListener {
             }
             count++;
         }
-        if (found)
-            finalMove = new Move(move.getFrom(), move.getTo(), getPromotionPiece(board.getSideToMove()));
-        return finalMove;
+        if (found) {
+            partialPromotion = move;
+            gui.setPromotionColour(Color.RED);
+            return true;
+        }
+        return false;
     }
 
     private static Board attemptMove(Board board, Move move) {
@@ -157,5 +161,4 @@ public class GameBoard implements ActionListener {
         }
         return board;
     }
-
 }
