@@ -19,7 +19,7 @@ public class GameBoard implements ActionListener {
 
     public GameBoard(boolean playerInput) {
         board = new Board();
-        gui = new BoardGUI();
+        gui = new BoardGUI(playerInput);
         frameSetup();
         if (playerInput)
             addActionListeners();
@@ -67,7 +67,6 @@ public class GameBoard implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        gui.getChessBoardGUI().setVisible(true);
         frame.repaint();
         gui.getChessBoardGUI().repaint();
         String[] s = e.getActionCommand().split(" ");

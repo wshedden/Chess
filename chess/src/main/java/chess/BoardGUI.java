@@ -16,6 +16,7 @@ public class BoardGUI {
     private JButton[] promotionSquares = new JButton[4];
     private JPanel chessBoard;
     private JPanel promotionGrid;
+    private Component flipButton;
     private String[][] pieces;
 
     public static Color darkTile = new Color(140, 162, 173);
@@ -27,7 +28,7 @@ public class BoardGUI {
     private ImageIcon[][] icons = new ImageIcon[2][];
     private Map<String, Integer> iconMap;
 
-    BoardGUI() {
+    BoardGUI(boolean showPlayerUI) {
         pieces = new String[8][];
         for (int i = 0; i < 8; i++) {
             pieces[i] = new String[8];
@@ -39,15 +40,17 @@ public class BoardGUI {
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         buttonPanel.setBorder(BorderFactory.createLineBorder(darkTile, 1));
         initialiseChessboard();
-        initialisePromotionGrid();
-        mainPanel.add(buttonPanel);
+        if (showPlayerUI) {
+            initialisePromotionGrid();
+            initialiseFlipButton();
+            mainPanel.add(buttonPanel);
+        }
     }
 
-    public void setTurnColour(boolean white) {
-        updatePromotionGrid(white);
-        if(white) 
-            buttonPanel.setBackground(lightTile);
-        else buttonPanel.setBackground(darkTile);
+    private void initialiseFlipButton() {
+        flipButton = new JButton();
+        buttonPanel.add(flipButton);
+
     }
 
     private void initialiseChessboard() {
@@ -167,13 +170,12 @@ public class BoardGUI {
         }
     }
 
-    private ImageIcon getIcon(int i, int j) {
-        String c = pieces[i][j];
-        if (c == "")
-            return new ImageIcon(new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB));
-        String lower = c.toLowerCase();
-        int colour = c == lower ? 0 : 1;
-        return icons[colour][iconMap.get(lower)];
+    public void setTurnColour(boolean white) {
+        updatePromotionGrid(white);
+        if (white)
+            buttonPanel.setBackground(lightTile);
+        else
+            buttonPanel.setBackground(darkTile);
     }
 
     public void setCheckSquare(int x, int y) {
@@ -191,6 +193,15 @@ public class BoardGUI {
 
     public final JComponent getGui() {
         return mainPanel;
+    }
+
+    private ImageIcon getIcon(int i, int j) {
+        String c = pieces[i][j];
+        if (c == "")
+            return new ImageIcon(new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB));
+        String lower = c.toLowerCase();
+        int colour = c == lower ? 0 : 1;
+        return icons[colour][iconMap.get(lower)];
     }
 
     public void addBoardActionListener(int i, int j, ActionListener listener) {
