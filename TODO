@@ -1,7 +1,8 @@
 Todos:
     ✔ Promotion handling @done(21-04-14 03:58)
-        ✔ GUI @done(21-04-14 03:58)
-    ☐ AI wrapper
-    ☐ ML
+    ✔ Fix visual glitch @done(21-07-10 04:40)
     ☐ Board flip option
-    ☐ Fix visual glitch
+    ☐ AI wrapper
+    ☐ Tidy up code
+    ☐ Turn indicator
+    ☐ Promotion window correctly coloured
