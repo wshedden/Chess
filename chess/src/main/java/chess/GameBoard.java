@@ -15,9 +15,12 @@ public class Gameboard extends Board implements ActionListener {
     private Move partialPromotion;
     private boolean isFlipped = false;
     private boolean isPlayerInput;
+    private boolean isAutoMove = true;
+    private Engine engine;
 
-    public Gameboard(boolean isPlayerInput) {
+    public Gameboard(boolean isPlayerInput, Engine engine) {
         this.isPlayerInput = isPlayerInput;
+        this.engine = engine;
         frame = new BoardFrame(isPlayerInput);
         if (isPlayerInput) {
             addActionListeners();
@@ -39,46 +42,56 @@ public class Gameboard extends Board implements ActionListener {
     }
 
     public void updateBoard() {
-        Move move = lastPlayerMove;
-        lastPlayerMove = null;
-        if (move != null) {
-            if (legalMoves().contains(move))
-                doMove(move);
-            else {
-                boolean isPromotion = testForPromotion(move);
-                if (!isPromotion)
-                    attemptMove(move);
-                else
-                    isWaitingForPromotion = true;
+        if (legalMoves().size() > 0) {
+            Move move = lastPlayerMove;
+            lastPlayerMove = null;
+            if (move != null) {
+                if (legalMoves().contains(move))
+                    doMove(move);
+                else {
+                    boolean isPromotion = testForPromotion(move);
+                    if (!isPromotion)
+                        attemptMove(move);
+                    else
+                        isWaitingForPromotion = true;
+                }
             }
-        }
-        testForChecks();
-        frame.setFen(getFen());
-        frame.refreshBoard(isFlipped);
-        if (isPlayerInput) {
-            frame.updatePromotionGrid(getSideToMove() == Side.WHITE);
+            testForChecks();
+            frame.setFen(getFen());
+            frame.refreshBoard(isFlipped);
+            if (isPlayerInput) {
+                frame.updatePromotionGrid(getSideToMove() == Side.WHITE);
+            }
+            if (isAutoMove && getSideToMove() == Side.BLACK) {
+                if (!isMated() && !isDraw()) {
+                    attemptMove(engine.getMove(getFen(), false));
+                }
+            }
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String[] s = e.getActionCommand().split(" ");
-        if (isWaitingForPromotion) {
-            if (s[0].equals("p")) {
-                selectPromotionPiece(s[1]);
+        if (legalMoves().size() > 0) {
+            String[] s = e.getActionCommand().split(" ");
+            if (isWaitingForPromotion) {
+                if (s[0].equals("p")) {
+                    selectPromotionPiece(s[1]);
+                }
+            } else {
+                if (s[0].equals("f")) {
+                    // Flip board
+                    isFlipped = !isFlipped;
+                    updateBoard();
+                } else if (s[0].equals("m")) {
+                    // Normal piece selection
+                    updateLastClicked(s);
+                    updateBoard();
+                }
             }
-        } else {
-            if (s[0].equals("f")) {
-                // Flip board
-                isFlipped = !isFlipped;
-                updateBoard();
-            } else if (s[0].equals("m")) {
-                // Normal piece selection
-                updateLastClicked(s);
-                updateBoard();
-            }
+            frame.updatePromotionGrid(getSideToMove() == Side.WHITE);
+            updateBoard(); // TODO: remove this
         }
-        frame.updatePromotionGrid(getSideToMove() == Side.WHITE);
     }
 
     private void selectPromotionPiece(String id) {
@@ -92,6 +105,7 @@ public class Gameboard extends Board implements ActionListener {
         testForChecks();
         frame.setFen(getFen());
         frame.refreshBoard(isFlipped);
+        updateBoard();
     }
 
     private void updateLastClicked(String[] coordinates) {
@@ -103,15 +117,21 @@ public class Gameboard extends Board implements ActionListener {
         } else {
             lastClicked = Square.squareAt(8 * y + 7 - x);
         }
+
         // Update squares
+        boolean ownSide = getPiece(lastClicked).getPieceSide() == getSideToMove();
         if (sq1 == null) {
-            if(lastClicked != Square.NONE){
+            if (ownSide) {
                 sq1 = lastClicked;
             }
         } else {
-            sq2 = lastClicked;
-            lastPlayerMove = new Move(sq1, sq2);
-            sq1 = null;
+            if (!ownSide) {
+                sq2 = lastClicked;
+                lastPlayerMove = new Move(sq1, sq2);
+                sq1 = sq2;
+            } else {
+                sq1 = lastClicked;
+            }
             sq2 = null;
         }
     }

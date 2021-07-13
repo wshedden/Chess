@@ -78,11 +78,11 @@ public class BoardFrame extends JFrame {
         promotionGrid.setVisible(true);
     }
 
-    public void updatePromotionGrid(boolean white) {
+    public void updatePromotionGrid(boolean isWhite) {
         String[] pieceList = new String[] { "q", "r", "b", "n" };
         for (int i = 0; i < 4; i++) {
             String path = "chess/src/main/resources/black_pieces_small/";
-            if (white)
+            if (isWhite)
                 path = "chess/src/main/resources/white_pieces_small/";
             promotionSquares[i].setIcon(new ImageIcon(path + pieceList[i] + ".png"));
         }

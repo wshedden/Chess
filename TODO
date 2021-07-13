@@ -2,9 +2,12 @@ Todos:
     ✔ Promotion handling @done(21-04-14 03:58)
     ✔ Fix visual glitch @done(21-07-10 04:40)
     ✔ Board flip button @done(21-07-13 02:46)
-    ☐ AI wrapper
+    ✔ AI wrapper @done(21-07-13 07:37)
     ✔ Tidy up code @done(21-07-13 02:46)
     ✔ Turn indicator @done(21-07-13 02:46)
     ✔ Promotion window correctly coloured @done(21-07-13 02:46)
     ✔ Correct flipped board click detection @done(21-07-13 03:29)
     ✔ Separate panels from BoardFrame @done(21-07-13 03:59)
+
+AI:
+    ☐ Implement minimax
